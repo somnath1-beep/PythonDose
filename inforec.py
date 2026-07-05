@@ -1,35 +1,38 @@
 import shelve as sh, re,os
-
-def validate_password():
-    password_pattern=re.compile(r'''\w+\d+[!@#$%^&*()_+{}":;\']+\w+\d+|\d+\w+[!@#$%^&*()_+{}":;\']+\w+\d+
+#match pattern for password validation
+password_pattern=re.compile(r'''\w+\d+[!@#$%^&*()_+{}":;\']+\w+\d+|\d+\w+[!@#$%^&*()_+{}":;\']+\w+\d+
                             \w+[!@#$%^&*()_+{}":;\']+\w+\d+|\w+\d+[!@#$%^&*()_+{}":;\']+\d+|
                             \w+\d+[!@#$%^&*()_+{}":;\']+\w+|[!@#$%^&*()_+{}":;\']+\w+\d+|[!@#$%^&*()_+{}":;\']+\d+\w+|
                             \d+[!@#$%^&*()_+{}":;\']+\w+\d+|[!@#$%^&*()_+{}":;\']+\w+\d+|\d+[!@#$%^&*()_+{}":;\']+\w+\d+|
                             \\d+\w+[!@#$%^&*()_+{}":;\']+\d+\w+''')
-    print(''' Password must be at least 8 characters long and 
+
+#validate password function
+def validate_password():
+        print(''' Password must be at least 8 characters long and 
             contain at least one uppercase letter, one lowercase letter, one digit, and one special character.''')
  
-    for i in range(3):    
-        password=input("Enter your password: ")
-        if(len(password)<8):
-            print("Password must be at least 8 characters long.")
-            continue
-            
-        password_match=password_pattern.findall(password)
-        if password_match!=[]:
-            print("Password saved successfully !")
-            return password
-        else:
-            print("Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.")
-            continue
-    return None
-    
-
+        for i in range(3):    
+            password=input("Enter your password: ")
+            if(len(password)<8):
+                print("Password must be at least 8 characters long.")
+                continue
+                
+            password_match=password_pattern.findall(password)
+            if password_match!=[]:
+                print("Password saved successfully !")
+                return password
+            else:
+                print("Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.")
+                continue
+        return None
+        
+#check if file exists and update or view information
 def update_info(name):
     fileobj=sh.open(f'{name}.db', 'w')
     password=input("Enter your password to update your information: ")
     if password==fileobj['password']:
         print("Password verified. You can now update your information.")
+        #store your option in a list and then update the information in the file
         information=input ("Enter what you want to update e.g., age, address, etc.: ").split(',')
         catogory=list(information)
         rec=[]
@@ -38,14 +41,14 @@ def update_info(name):
             rec.append(catogory[i])
         
         for i in range (len(catogory)):
-            fileobj[catogory[i]]=rec[i]
+            fileobj[catogory[i]]=rec[i]#saving info in shelve file
         print(f"Your information has been updated in {name}.db file.")
     else:
         print("Incorrect password. You cannot update your information.")
     fileobj.close()
-def view_info(name):
+def view_info(name):# display your saved information in the file
     fileobj=sh.open(f'{name}.db')
-    password=input("Enter your password to view your information: ")
+    password=input("Enter your password to view your information: ")#match the password with the one saved in the file
     if password==fileobj['password']:
         print(f"Hello {name}, your information is as follows:")
         for key in fileobj.keys():
@@ -54,10 +57,10 @@ def view_info(name):
     else:
         print("Incorrect password. You cannot view your information.")
     fileobj.close()
-def new_info(name):
+def new_info(name):# create a new file and save your information in it
     fileobj=sh.open(f'{name}.db')
     print("Create a password for your file.")
-    password=validate_password()
+    password=validate_password()#set a password for your file and validate it
     if password is None:
         print("Failed to create a valid password. Exiting.")
         fileobj.close()
