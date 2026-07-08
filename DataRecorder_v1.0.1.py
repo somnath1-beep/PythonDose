@@ -29,9 +29,12 @@ def file_operation(file,u_keys=None,u_values=None,mode=None):#if you have to wri
 def filehandler(name,search=None,status='create'):#make folder and search path return file path and true /false
     if search==None and status=='create':# for new file, make folder and return path of file
         folder=os.path.join('c:\\','Datarecorder',f'info_{name}')
-        os.makedirs(folder)
         file=os.path.join(folder,f'{name}.txt')
-        return file
+        if os.path.exists(folder):
+            return file
+        else:
+            os.makedirs(folder)
+            return file
     elif search==None and status!='create': # for update or view . return file path
         file=os.path.join('c:\\','Datarecorder',f'info_{name}',f'{name}.txt')
         return file
@@ -148,12 +151,13 @@ def backend(Name=None, password=None):
 3.for view info''',parent=root))
     if option==1:
          if(filehandler(name,'searching')):
-              replace=simpledialog.askfloat("File Searching","""File Already Exist!
+              replace=int(simpledialog.askfloat("File Searching","""File Already Exist!
                                             Do you want to Replace file
                                             Enter 1 for yes 0 for no
-                                            """)
+                                            """))
               if replace==1:
-                   os.remove(f'{name}') 
+                   file=os.path.join('c:\\','Datarecorder',f'info_{name}',f'{name}.txt')
+                   os.remove(file) 
                    new_info(name,password)
               else:
                    return  
