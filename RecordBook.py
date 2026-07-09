@@ -44,7 +44,7 @@ def file_operation(file,u_keys=None,u_values=None,mode=None):#if you have to wri
 
 def filehandler(name,search=None,status='create'):#make folder and search path return file path and true /false
     if search==None and status=='create':# for new file, make folder and return path of file
-        folder=os.path.join('c:\\','RecordBook',f'info_{name}')
+        folder=os.path.join('c:\\','MyRecords',f'info_{name}')
         file=os.path.join(folder,f'{name}.txt')# .dat -> generic data
         if os.path.exists(folder):
             return file
@@ -52,10 +52,10 @@ def filehandler(name,search=None,status='create'):#make folder and search path r
             os.makedirs(folder)
             return file
     elif search==None and status!='create': # for update or view . return file path
-        file=os.path.join('c:\\','RecordBook',f'info_{name}',f'{name}.txt')
+        file=os.path.join('c:\\','MyRecords',f'info_{name}',f'{name}.txt')
         return file
     elif search=='searching':# for search any file associated with given name and return true /false if found or not
-        file=os.path.join('c:\\','RecordBook',f'info_{name}',f'{name}.txt')
+        file=os.path.join('c:\\','MyRecords',f'info_{name}',f'{name}.txt')
         #folder=os.path.join('c:\\','Datarecorder',f'info_{name}')
         search_result=os.path.exists(file)  
         return search_result
@@ -93,13 +93,13 @@ def update_info(name,password):# to add or delete data from /in file
     if filevalues[0]==password:#matching password
         root.lift()# bring main tkinter window automatically on top of desktop
         root.focus_force()# bring any popup window wiating for input from keyboard in focus
-        modification_choice=simpledialog.askstring(" File Modification",'''
+        modification_choice=simpledialog.askinteger(" File Modification",'''
                                                     1.Delete Data     
                                                     2.Add Data          ''',parent=root)
         if modification_choice==1:
             root.lift()# bring main tkinter window automatically on top of desktop
             root.focus_force()# bring any popup window wiating for input from keyboard in focus
-            delete_key=information=simpledialog.askstring("Delete keys","Enter Keys to be deleted:      ",parent=root).split(",")#get list of keys to be deleted by user
+            delete_key=information=simpledialog.askstring("Delete keys","Enter Keys to be deleted:              ",parent=root).split(",")#get list of keys to be deleted by user
             InvalidKeys=[]# for keys that not found in file given by user to delete
             for i in delete_key:
                 if i in filekeys:
@@ -118,12 +118,12 @@ def update_info(name,password):# to add or delete data from /in file
         else:#adding data
             root.lift()# bring main tkinter window automatically on top of desktop
             root.focus_force()# bring any popup window wiating for input from keyboard in focus
-            userkeys=simpledialog.askstring("Enter category","e.g., name,address,age:      ",parent=root).split(",")
+            userkeys=simpledialog.askstring("Enter category","e.g., name,address,age:               ",parent=root).split(",")
             uservalues=[]
             for i in range(0,len(userkeys)):
                 root.lift()# bring main tkinter window automatically on top of desktop
                 root.focus_force()# bring any popup window wiating for input from keyboard in focus
-                info=simpledialog.askstring("Enter Your Details",f"Enter your {userkeys[i]}:       ",parent=root)
+                info=simpledialog.askstring("Enter Your Details",f"Enter your {userkeys[i]}:                ",parent=root)
                 uservalues.append(info)# values appended give by user
             file_operation(filepath,u_keys=userkeys,u_values=uservalues,mode='a')
             messagebox.showinfo("File Modification","File Modified!")
@@ -159,12 +159,12 @@ def new_info(name,password):# create a new file and save your information in it
     file_operation(filepath,u_keys=['_info_password'],u_values=[password],mode='w+')
     root.lift()# bring main tkinter window automatically on top of desktop
     root.focus_force()# bring any popup window wiating for input from keyboard in focus
-    userkeys=simpledialog.askstring("Enter category","e.g., name,address,age:      ",parent=root).split(",")
+    userkeys=simpledialog.askstring("Enter category","e.g., name,address,age:               ",parent=root).split(",")
     uservalues=[]
     for i in range(0,len(userkeys)):
         root.lift()# bring main tkinter window automatically on top of desktop
         root.focus_force()# bring any popup window wiating for input from keyboard in focus
-        info=simpledialog.askstring("Enter Your Details",f"Enter your {userkeys[i]}:       ",parent=root)
+        info=simpledialog.askstring("Enter Your Details",f"Enter your {userkeys[i]}:                ",parent=root)
         uservalues.append(info)# values appended give by user
     file_operation(filepath,u_keys=userkeys,u_values=uservalues,mode='a')
     messagebox.showinfo("Create","File Created Successfully!")
@@ -182,16 +182,16 @@ def backend(Name=None, password=None):
     option=simpledialog.askinteger("Select OPtion",''' 
 1.for new file
 2.for update file 
-3.for view info      ''',parent=root)
+3.for view info             ''',parent=root)
     if option==1:
          if(filehandler(name,'searching')):
               root.lift()# bring main tkinter window automatically on top of desktop
               root.focus_force()# bring any popup window wiating for input from keyboard in focus
               replace=simpledialog.askinteger("File Searching","""File Already Exist!
                                             Do you want to Replace file
-                                            Enter 1 for yes 0 for no      """,parent=root)
+                                            Enter 1 for yes 0 for no                """,parent=root)
               if replace==1:
-                   file=os.path.join('c:\\','Datarecorder',f'info_{name}',f'{name}.txt')
+                   file=filehandler(name,status='update')
                    os.remove(file) 
                    new_info(name,password)#replace existed file
                    return
@@ -264,7 +264,7 @@ def main_interface():
     name_widget()
     password_widget()
     send_btn(getinfo,"ok")
-    send_btn(main_interface,"clear screeen")
+    send_btn(main_interface,"Refresh")
 root=tk.Tk()
 root.title("Information Recorder")
 root.geometry("500x500")
