@@ -1,6 +1,6 @@
 import shelve as sh, re,os
 import tkinter as tk
-from tkinter import messagebox,simpledialog
+from tkinter import messagebox,simpledialog 
 import base64 # to convert binary data to scramble object 
 #match pattern for password validation
 #to decode Base64 structure into bytes then string
@@ -91,18 +91,20 @@ def update_info(name,password):# to add or delete data from /in file
     filekeys=ret[0]# accessing list from tuple
     filevalues=ret[1] # accessing list from tuple 
     if filevalues[0]==password:#matching password
-        root.lift()# bring main tkinter window automatically on top of desktop
-        root.focus_force()# bring any popup window wiating for input from keyboard in focus
         modification_choice=simpledialog.askinteger(" File Modification",'''
                                                     1.Delete Data     
                                                     2.Add Data          ''',parent=root)
         if modification_choice==1:
-            root.lift()# bring main tkinter window automatically on top of desktop
-            root.focus_force()# bring any popup window wiating for input from keyboard in focus
-            delete_key=information=simpledialog.askstring("Delete keys","Enter Keys to be deleted:              ",parent=root).split(",")#get list of keys to be deleted by user
+            try:
+                delete_key=information=simpledialog.askstring("Delete keys","Enter Keys to be deleted:              ",parent=root).split(",")#get list of keys to be deleted by user
+            except:
+                return
             InvalidKeys=[]# for keys that not found in file given by user to delete
+            delflag=0
+            
             for i in delete_key:
                 if i in filekeys:
+                    delflag=1
                     key_frequency=filekeys.count(i)
                     for j in range(key_frequency):
                         index=filekeys.index(i)
@@ -111,26 +113,56 @@ def update_info(name,password):# to add or delete data from /in file
                 else:
                     InvalidKeys.append(i)#appending  key not found
             file_operation(filepath,u_keys=filekeys,u_values=filevalues,mode='w+')
-            messagebox.showinfo("Delete Keys","Deletion successfull!")
+            if delflag==1:
+                messagebox.showinfo("Delete Keys"," Valid Key Deleted successfull!")
             if InvalidKeys!=[]:# show key that not found 
-                messagebox.showwarning("Delete Keys",f"Keys Not Found:{InvalidKeys}")
-            return
-        else:#adding data
-            root.lift()# bring main tkinter window automatically on top of desktop
-            root.focus_force()# bring any popup window wiating for input from keyboard in focus
-            userkeys=simpledialog.askstring("Enter category","e.g., name,address,age:               ",parent=root).split(",")
-            uservalues=[]
-            for i in range(0,len(userkeys)):
-                root.lift()# bring main tkinter window automatically on top of desktop
-                root.focus_force()# bring any popup window wiating for input from keyboard in focus
-                info=simpledialog.askstring("Enter Your Details",f"Enter your {userkeys[i]}:                ",parent=root)
-                uservalues.append(info)# values appended give by user
-            file_operation(filepath,u_keys=userkeys,u_values=uservalues,mode='a')
-            messagebox.showinfo("File Modification","File Modified!")
-            return
+                messagebox.showwarning("Delete Keys",f"Keys Not Found:{InvalidKeys}")                           
+            
+        elif modification_choice==2:#adding data
+            messagebox.showinfo("Enter category","Don't use ':' with category or as a category",parent=root)
+            flag=0
+            while True:
+                try:
+                    userkeys=simpledialog.askstring("Enter category","e.g., name,address,age:               ",parent=root).split(",")
+                except:
+                    return
+                for i in  userkeys:
+                    if ':' in i:
+                        messagebox.showwarning("Enter category","Don't use':' anywhere!",parent=root)
+                        flag=1
+                        break
+                if flag==0:
+                    if userkeys==[''] :
+                        messagebox.showwarning("Enter category","Invalid category",parent=root)
+                        continue
+                    uservalues=[]
+                    for i in range(0,len(userkeys)):
+                        info=simpledialog.askstring("Enter Your Details",f"Enter your {userkeys[i]}:                ",parent=root)
+                        if info == None:
+                            return
+                        elif ':'in info:
+                            messagebox.showwarning("Enter category","Don't use':' anywhere!",parent=root)
+                            info=simpledialog.askstring("Enter Your Details",f"Enter your {userkeys[i]}:                ",parent=root)
+                            
+                        uservalues.append(info)# values appended given by user
+                    file_operation(filepath,u_keys=userkeys,u_values=uservalues,mode='a')
+                    messagebox.showinfo("File Modification","File Modified!")
+                    return
+                elif flag==1:
+                    flag=0
+                    continue
+        elif modification_choice==None:# user cancel
+                return
+        else:#if user give invalid choice 
+            messagebox.showwarning("File Modification","Invalid Choice!")
+            del filepath
+            del ret
+            del filekeys
+            del filevalues
+            update_info(name,password)
     else:
         messagebox.showerror("Password Verification","Wrong Password!")
-        return        
+        return      
     
 def view_info(name,password):# display your saved information in the file
     filepath=filehandler(name,status='view')
@@ -138,8 +170,8 @@ def view_info(name,password):# display your saved information in the file
     if ret=='Invalid Path!':
         messagebox.showerror("File Search",f"{ret}")
         return
-    filekeys=ret[0]
-    filevalues=ret[1]    
+    filekeys=ret[0]#list of keys
+    filevalues=ret[1] #list of values  
     if filevalues[0]==password:
         widget=root.winfo_children()
         if len(widget)==8:
@@ -157,62 +189,102 @@ def view_info(name,password):# display your saved information in the file
 def new_info(name,password):# create a new file and save your information in it
     filepath=filehandler(name)
     file_operation(filepath,u_keys=['_info_password'],u_values=[password],mode='w+')
-    root.lift()# bring main tkinter window automatically on top of desktop
-    root.focus_force()# bring any popup window wiating for input from keyboard in focus
-    userkeys=simpledialog.askstring("Enter category","e.g., name,address,age:               ",parent=root).split(",")
-    uservalues=[]
-    for i in range(0,len(userkeys)):
-        root.lift()# bring main tkinter window automatically on top of desktop
-        root.focus_force()# bring any popup window wiating for input from keyboard in focus
-        info=simpledialog.askstring("Enter Your Details",f"Enter your {userkeys[i]}:                ",parent=root)
-        uservalues.append(info)# values appended give by user
-    file_operation(filepath,u_keys=userkeys,u_values=uservalues,mode='a')
-    messagebox.showinfo("Create","File Created Successfully!")
-    return
+    messagebox.showinfo("Enter category","Don't use ':' with category or as a category",parent=root)
+    flag=0
+    while True:
+        try:
+            userkeys=simpledialog.askstring("Enter category","e.g., name,address,age:               ",parent=root).split(",")
+        except:
+            os.remove(filepath)
+            return
+        for i in  userkeys:
+            if ':' in i:
+                messagebox.showwarning("Enter category","Don't use':' anywhere!",parent=root)
+                flag=1
+                break
+        if flag==0:
+            if userkeys==[''] :
+                messagebox.showwarning("Enter category","Invalid category",parent=root)
+                continue
+            uservalues=[]
+            for i in range(0,len(userkeys)):
+                info=simpledialog.askstring("Enter Your Details",f"Enter your {userkeys[i]}:                ",parent=root)
+                if info == None:
+                    return
+                elif ':'in info:
+                    messagebox.showwarning("Enter category","Don't use':' anywhere!",parent=root)
+                    info=simpledialog.askstring("Enter Your Details",f"Enter your {userkeys[i]}:                ",parent=root)
+                    
+                uservalues.append(info)# values appended given by user
+            file_operation(filepath,u_keys=userkeys,u_values=uservalues,mode='a')
+            messagebox.showinfo("File Modification","File Created successfully!")
+            return
+        elif flag==1:
+            flag=0
+            continue
 
 def backend(Name=None, password=None):
     name=Name.lower()
-    
     password_result=validate_password(password)#rreturn tupple with message and 1/0 1-> success
     if password_result[1]==0:# 0 means password doesn't meet criteria
-         messagebox.showinfo("Password Verification",password_result[0])
-         return
+        messagebox.showinfo("Password Verification",password_result[0])
+        return
     root.lift()# bring main tkinter window automatically on top of desktop
     root.focus_force()# bring any popup window wiating for input from keyboard in focus
     option=simpledialog.askinteger("Select OPtion",''' 
-1.for new file
-2.for update file 
-3.for view info             ''',parent=root)
-    if option==1:
-         if(filehandler(name,'searching')):
-              root.lift()# bring main tkinter window automatically on top of desktop
-              root.focus_force()# bring any popup window wiating for input from keyboard in focus
-              replace=simpledialog.askinteger("File Searching","""File Already Exist!
-                                            Do you want to Replace file
-                                            Enter 1 for yes 0 for no                """,parent=root)
-              if replace==1:
-                   file=filehandler(name,status='update')
-                   os.remove(file) 
-                   new_info(name,password)#replace existed file
-                   return
-              else:
-                   return  
-         new_info(name,password)# create a new file if file not existed already
-         
+1.Create File
+2.Update File 
+3.View File 
+4.Delete File            ''',parent=root)
+    if option==1: 
+        if(filehandler(name,'searching')):
+            while True:
+                replace=simpledialog.askinteger("Create File","""File Already Exist!
+                                                Do you want to Replace file
+                                                Enter 1 for yes 0 for no                """,parent=root)
+                if replace==1:
+                    file=filehandler(name,status='update')
+                    os.remove(file) 
+                    new_info(name,password)#replace existed file
+                    return
+                elif replace==0 or replace==None:
+                    return
+                else:
+                    messagebox.showwarning("Create File","Invalid Choice!")
+                    continue
+        new_info(name,password)# create a new file if file not existed already
+        
     elif option==2:
-         if filehandler(name,'searching'):
+        if filehandler(name,'searching'):
             update_info(name,password)
-         else: 
-            messagebox.showerror("File Searching","File not found!")
+        else: 
+            messagebox.showerror("Create File","File not found!")
             return
     elif  option==3 :
-         if filehandler(name,'searching'):
-             view_info(name,password)
-         else: 
-            messagebox.showerror("File Searching","File not found!")
+        if filehandler(name,'searching'):
+            view_info(name,password)
+        else: 
+            messagebox.showerror("Create File","File not found!")
+            return
+    elif option==4 and filehandler(name,search='searching'):
+        filepath=filehandler(name,status='view')
+        ret=file_operation(filepath,mode='r')#return keys and values or Invalid Path!  
+        if ret[1][0]==password:
+            os.remove(filepath)
+            messagebox.showinfo('Delete File','File Deleted Successfully!')
+            return
+        else:
+            messagebox.showerror("Password Verification","Wrong Password!")
             return
         
-    
+    elif filehandler(name,search='searching')==False:
+        messagebox.showerror("delete File","File not Found")
+        backend(name,password)
+    elif option==None:
+        return
+    else:
+        messagebox.showerror("Select OPtion","Invalid Choice!")
+        backend(name,password)       
 def name_widget():
     global name_entry
     namelbl=tk.Label(root,text="Enter your Name:")
@@ -246,11 +318,6 @@ def getinfo():
         return
     backend(name,password)
 
-def password_validate_widget():
-    clean_widget()
-    name_widget()
-    password_widget()
-
 def output_widget():
     global output
     outputlbl=tk.Label(root,text="Output:")
@@ -269,9 +336,4 @@ root=tk.Tk()
 root.title("Information Recorder")
 root.geometry("500x500")
 main_interface()
-
 root.mainloop()
-
-    
-
-#create / make name and password global 
