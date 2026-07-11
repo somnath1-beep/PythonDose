@@ -1,9 +1,9 @@
-import shelve as sh, re,os
+import  re,os
 import tkinter as tk
 from tkinter import messagebox,simpledialog 
 import base64 # to convert binary data to scramble object 
-#match pattern for password validation
 #to decode Base64 structure into bytes then string
+from screeninfo import get_monitors
 def text_manipulate(scramble_obj):
     #Decode the Base64 structure back to standard bytes
     decoded_key_bytes = base64.b64decode(scramble_obj)
@@ -68,6 +68,7 @@ password_pattern=re.compile(r'''\w+\d+[!@#$%^&*()_+{}":;\']+\w+\d+|\d+\w+[!@#$%^
                             \\d+\w+[!@#$%^&*()_+{}":;\']+\d+\w+''')# to valdiate password that contain at least one alphabet, one digit, and one special character.
 
 #validate password function
+#match pattern for password validation
 def validate_password(password):
         if(len(password)<8):# for insufficient length
                 verification_message="Password must be at least 8 character"
@@ -173,11 +174,10 @@ def view_info(name,password):# display your saved information in the file
     filekeys=ret[0]#list of keys
     filevalues=ret[1] #list of values  
     if filevalues[0]==password:
-        widget=root.winfo_children()
-        if len(widget)==8:
+        try:
             output.delete("1.0",tk.END)
-        else:
-            output_widget()
+        except:
+            output_widget()#additional widget 
         for i in range(1,len(filekeys)):
             output.insert(tk.END,f"{filekeys[i]}:{filevalues[i]}\n")# displaying output in window
     
@@ -218,12 +218,46 @@ def new_info(name,password):# create a new file and save your information in it
                 uservalues.append(info)# values appended given by user
             file_operation(filepath,u_keys=userkeys,u_values=uservalues,mode='a')
             messagebox.showinfo("File Modification","File Created successfully!")
-            return
+            #password Secret code setup
+            setup_choice=simpledialog.askinteger("Secret Code Setup",'''Do You Want to Set Secret Code For Password Recovery? Select Option:
+                                                1.For Yes
+                                                2.For NO''',parent=root)
+            while True:
+                if setup_choice==1:
+                    passwordFolder=name+'_password'
+                    filepath=filehandler(passwordFolder,status='create')
+                    secretcode=simpledialog.askstring("Secret Code Setup","Secret Key:")
+                    file_operation(filepath,u_keys=['secretcode'],u_values=[secretcode],mode='a')
+                    messagebox.showinfo("Secret Code Setup","Secret Code Created!")
+                    return
+                elif setup_choice==2:
+                    return
+                elif setup_choice==None:
+                    return
+                else:
+                    messagebox.showwarning("File Modification","Invalid Choice!")
+                    continue
         elif flag==1:
             flag=0
             continue
+def password_recovery():
+    secretcode=secretcode_entry.get()
+    print(secretcode)
+    passwordFolder=name+'_password'
+    filepath=filehandler(passwordFolder,status='PasswordFile')#return path
+    ret=file_operation(filepath,mode='r')
+    if ret=='Invalid Path!':
+        messagebox.showerror("Secret Code","You dont have Secret Code!")
+        return
+    org_password=ret[1][0]
+    if org_password==secretcode:
+        messagebox.showinfo("Secret Code",f"Your Secret Code:{org_password}")
+        return
+    else:
+        messagebox.showinfo("Secret Code","Wrong Secret Code")
+        return
 
-def backend(Name=None, password=None):
+def backend(Name=None, password=None,option=None):
     name=Name.lower()
     password_result=validate_password(password)#rreturn tupple with message and 1/0 1-> success
     if password_result[1]==0:# 0 means password doesn't meet criteria
@@ -231,11 +265,6 @@ def backend(Name=None, password=None):
         return
     root.lift()# bring main tkinter window automatically on top of desktop
     root.focus_force()# bring any popup window wiating for input from keyboard in focus
-    option=simpledialog.askinteger("Select OPtion",''' 
-1.Create File
-2.Update File 
-3.View File 
-4.Delete File            ''',parent=root)
     if option==1: 
         if(filehandler(name,'searching')):
             while True:
@@ -287,7 +316,7 @@ def backend(Name=None, password=None):
         backend(name,password)       
 def name_widget():
     global name_entry
-    namelbl=tk.Label(root,text="Enter your Name:")
+    namelbl=tk.Label(root,text="Enter your File Name:")
     namelbl.pack(pady=10)
     name_entry=tk.Entry(root,width=40,bg="cyan",fg="black")
     name_entry.pack(pady=10)
@@ -302,8 +331,7 @@ def password_widget():
 def clean_widget():
     for widget in root.winfo_children():
         widget.destroy()
-
-
+       
 def send_btn(function, head):
     global submit_button
     submit_btn=tk.Button(root,text=head, command=function)
@@ -326,14 +354,73 @@ def output_widget():
     output.pack(pady=10)
     return
 
+def password_recovery_widget():
+    global secretcode_entry,name
+    name=name_entry.get()
+    if name=='':
+        messagebox.showwarning("Password Recovery","You don't have entered file name!")
+        main_interface()
+        return
+    clean_widget()
+    password_recoverylbl=tk.Label(root,text="Enter Your Secret Code")
+    password_recoverylbl.pack(pady=10)
+    secretcode_entry=tk.Entry(root,width=40,bg='cyan',fg='black')
+    secretcode_entry.pack(pady=10)
+    send_btn(password_recovery,"Next")
+    send_btn(main_interface,"Back")
+
+def createbtn():
+    name=name_entry.get()
+    password=password_entry.get()
+    if name==''or password_entry=='':
+        messagebox.showwarning("Password Recovery","You don't have entered file name or Password!")
+        main_interface()
+        return
+    else:
+        backend(name,password,option=1)
+def updatebtn():
+    name=name_entry.get()
+    password=password_entry.get()
+    if name==''or password_entry=='':
+        messagebox.showwarning("Password Recovery","You don't have entered file name or Password!")
+        main_interface()
+        return
+    else:
+        backend(name,password,option=2)
+def viewbtn():
+    name=name_entry.get()
+    password=password_entry.get()
+    if name==''or password_entry=='':
+        messagebox.showwarning("Password Recovery","You don't have entered file name or Password!")
+        main_interface()
+        return
+    else:
+        backend(name,password,option=3)
+def deletebtn():
+    name=name_entry.get()
+    password=password_entry.get()
+    if name==''or password_entry=='':
+        messagebox.showwarning("Password Recovery","You don't have entered file name or Password!")
+        main_interface()
+        return
+    else:
+        backend(name,password,option=4)
 def main_interface():
     clean_widget()
     name_widget()
     password_widget()
-    send_btn(getinfo,"ok")
+    send_btn(createbtn,"Create File")
+    send_btn(updatebtn,"Update File")
+    send_btn(viewbtn,"View File")
+    send_btn(deletebtn,"Delete File")
+    send_btn(password_recovery_widget,"Forget password")
     send_btn(main_interface,"Refresh")
+
+monitorobj=get_monitors()  #return one monitor obj in list
+mwidth=monitorobj[0].width
+mheight=monitorobj[0].height
 root=tk.Tk()
 root.title("Information Recorder")
-root.geometry("500x500")
+root.geometry(f"{mwidth}x{mheight}")# format must match i.e.,"width x height"
 main_interface()
 root.mainloop()
