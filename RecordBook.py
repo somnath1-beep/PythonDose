@@ -226,7 +226,7 @@ def new_info(name,password):# create a new file and save your information in it
                 if setup_choice==1:
                     passwordFolder=name+'_password'
                     filepath=filehandler(passwordFolder,status='create')
-                    secretcode=simpledialog.askstring("Secret Code Setup","Secret Key:")
+                    secretcode=simpledialog.askstring("Secret Code Setup","Secret Key:",parent=root)
                     file_operation(filepath,u_keys=['secretcode'],u_values=[secretcode],mode='a')
                     messagebox.showinfo("Secret Code Setup","Secret Code Created!")
                     return
@@ -242,16 +242,18 @@ def new_info(name,password):# create a new file and save your information in it
             continue
 def password_recovery():
     secretcode=secretcode_entry.get()
-    print(secretcode)
     passwordFolder=name+'_password'
     filepath=filehandler(passwordFolder,status='PasswordFile')#return path
     ret=file_operation(filepath,mode='r')
-    if ret=='Invalid Path!':
+    if ret=='Invalid Path!':#password file path
         messagebox.showerror("Secret Code","You dont have Secret Code!")
         return
     org_password=ret[1][0]
     if org_password==secretcode:
-        messagebox.showinfo("Secret Code",f"Your Secret Code:{org_password}")
+        filepath=filehandler(name,status='view')
+        ret=file_operation(filepath,mode='r')
+        your_password=ret[1][0]
+        messagebox.showinfo("Password",f"Your Password: {your_password}")
         return
     else:
         messagebox.showinfo("Secret Code","Wrong Secret Code")
@@ -372,7 +374,7 @@ def password_recovery_widget():
 def createbtn():
     name=name_entry.get()
     password=password_entry.get()
-    if name==''or password_entry=='':
+    if name=='':
         messagebox.showwarning("Password Recovery","You don't have entered file name or Password!")
         main_interface()
         return
@@ -381,7 +383,7 @@ def createbtn():
 def updatebtn():
     name=name_entry.get()
     password=password_entry.get()
-    if name==''or password_entry=='':
+    if name=='':
         messagebox.showwarning("Password Recovery","You don't have entered file name or Password!")
         main_interface()
         return
@@ -390,7 +392,7 @@ def updatebtn():
 def viewbtn():
     name=name_entry.get()
     password=password_entry.get()
-    if name==''or password_entry=='':
+    if name=='':
         messagebox.showwarning("Password Recovery","You don't have entered file name or Password!")
         main_interface()
         return
@@ -399,7 +401,7 @@ def viewbtn():
 def deletebtn():
     name=name_entry.get()
     password=password_entry.get()
-    if name==''or password_entry=='':
+    if name=='':
         messagebox.showwarning("Password Recovery","You don't have entered file name or Password!")
         main_interface()
         return
